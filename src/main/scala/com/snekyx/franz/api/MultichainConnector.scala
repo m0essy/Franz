@@ -1,4 +1,4 @@
-package api
+package com.snekyx.franz.api
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{Uri, headers}
@@ -13,8 +13,8 @@ trait MultichainConnector {
   implicit val credentials: Credentials
   implicit val ec: ExecutionContext
 
-  val multichainUri = Uri("http://" + credentials.ip + ":" + credentials.port)
+  def multichainUri = Uri("http://" + credentials.ip + ":" + credentials.port)
 
-  val auth = headers.Authorization(BasicHttpCredentials(credentials.login, credentials.password))
+  def auth = headers.Authorization(BasicHttpCredentials(credentials.login, credentials.password))
 
 }

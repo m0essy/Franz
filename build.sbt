@@ -1,6 +1,6 @@
 name := "MultiTacking"
 
-version := "0.1"
+version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.12.5"
 val circeVersion = "0.9.3"
@@ -15,6 +15,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.11" % Test,
   "com.typesafe.akka" %% "akka-http" % "10.1.0",
   "com.typesafe.akka" %% "akka-http-testkit" % "10.1.0" % Test
+//  "org.specs2" %% "specs2-core" % "4.0.2" % Test
+
 )
 
 libraryDependencies ++= Seq(

@@ -1,4 +1,4 @@
-package api
+package com.snekyx.franz.api
 
 import java.util.UUID
 

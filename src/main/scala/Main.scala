@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
-import api.{Credentials, StreamCommands}
+import com.snekyx.franz.api.{Credentials, StreamCommands}
 import multichain.`object`.Address
 import multichain.command._
 
@@ -21,9 +21,11 @@ object Main extends StreamCommands {
 
   def main(args: Array[String]): Unit = {
 
-    createFrom("1MmR7v5DtVxhVHNUdvogFxhPNxqHtiNpVk7n9u", "s2", true) //map { item =>
-//      println("Finally " + item)
-//    }
+//    createFrom("1MmR7v5DtVxhVHNUdvogFxhPNxqHtiNpVk7n9u", "s2", true).onComplete {
+    listStreams().onComplete {
+      case Success(res) => println(res)
+      case Failure(err) => sys.error("something wrong: " + err)
+    }
   }
 
 
