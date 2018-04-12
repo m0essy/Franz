@@ -7,10 +7,7 @@ import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
 
-trait CommandUtils {
-
-
-
+trait MultiChainCommands {
   implicit def string2Param (param: String): Param   = StringParam(param)
   implicit def int2Param (param: Int): Param         = IntParam(param)
   implicit def boolean2Param (param: Boolean): Param = BooleanParam(param)
@@ -23,9 +20,5 @@ trait CommandUtils {
     case x: StringParam  => x.asJson
     case x: IntParam     => x.asJson
     case x: BooleanParam => x.asJson
-  }
-
-  def generateId = {
-    UUID.randomUUID().toString
   }
 }

@@ -6,8 +6,16 @@ It uses akka-http client to provide an asynchronous com.snekyx.franz.api to use 
 
 At the moment the following Multichain commands are supported:
 
+Addresses:
+
+Permissions:
+
+Streams:
 - listStream
+- ceateStream
 - createStreamFrom
+
+Transactions:
 
 more are hopefully avaliable soon
 
@@ -20,3 +28,5 @@ more are hopefully avaliable soon
 - add documentation
 
 also hopefully coming soon...
+
+###examples
