@@ -1,6 +1,6 @@
 package com.snekyx.franz.api
 
-trait TransactionCommands extends MultiChainCommands with MultiChainConnector {
+trait TransactionCommands extends CommandParams with MultiChainConnector {
 
 }
 //

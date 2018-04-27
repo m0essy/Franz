@@ -22,11 +22,7 @@ trait MultiChainSetup {
     val homeDirectory = System.getProperty("user.home")
     val filename = s"$homeDirectory\\AppData\\Roaming\\MultiChain\\$multiChainName\\params.dat"
     val portString = extractString(filename, "default-rpc-port = ")
-    val x = portString.split('#').head.trim.toInt
-
-    println("YYYYYYYYYYYYYYYYY " + x)
-
-    x
+    portString.split('#').head.trim.toInt
   }
 
   def multiChainPassword: String = {

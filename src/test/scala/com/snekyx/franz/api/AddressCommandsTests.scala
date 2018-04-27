@@ -2,14 +2,21 @@ package com.snekyx.franz.api
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.snekyx.franz.api.streams.CreationResponse
+import com.snekyx.franz.api.addresses.NewAddressResponse
 import com.snekyx.franz.api.util.MultiChainSetup
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
+import org.specs2.matcher.MatcherMacros
+import scala.language.experimental.macros
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
-class MultiChainStreamTests extends Specification with MultiChainSetup with BeforeAfterAll {
+
+class AddressCommandsTests extends Specification with MultiChainSetup with BeforeAfterAll with MatcherMacros {
+
+  sequential
+
+  override val multiChainName = "addressTestsBlockChain"
 
   override def beforeAll(): Unit = {
     deleteBlockChain()
@@ -26,14 +33,18 @@ class MultiChainStreamTests extends Specification with MultiChainSetup with Befo
   }
 
   "Multichain" should {
-    "create Stream" in {
-      val result = Await.result(multiChainStreams.create("stream1", open = true), 2 seconds)
-      result mustEqual CreationResponse()
+    "create a new Address" in {
+      val result = Await.result(multiChainAddresses.getNewAddress(), 2 seconds)
+
+      result match {
+        case x: NewAddressResponse => success
+        case _ => failure("expected Result is NewAddressResponse")
+      }
     }
   }
 
-  private def multiChainStreams = {
-    new StreamCommands {
+  private def multiChainAddresses = {
+    new AddressCommands {
       override implicit val system: ActorSystem = ActorSystem()
       override implicit val materializer: ActorMaterializer = ActorMaterializer()
       override implicit val credentials: Credentials = Credentials("localhost", multiChainPort, multiChainUser, multiChainPassword)

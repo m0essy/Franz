@@ -2,12 +2,16 @@ package com.snekyx.franz
 
 import java.util.UUID
 
+import com.snekyx.franz.api.permissions.Permission.Permission
+
 package object api {
+
   case class Credentials(ip: String, port: Int, login: String, password: String)
 
   sealed trait Param {
     val value: Any
   }
+
 
   case class StringParam(value: String) extends Param
 
@@ -15,8 +19,49 @@ package object api {
 
   case class BooleanParam(value: Boolean) extends Param
 
-  case class MultiChainError(statusCode: Int)
+  case class MultiChainError(code: Int, message: String)
 
+  object addresses {
+
+    // commands
+    case class GetNewAddress(id: String, method: String)
+
+    // responses
+    sealed trait AddressResponse
+
+    case class AddressCommandError(statusCode: Int, errorCode: Int, message: String) extends AddressResponse
+
+    case class NewAddressResponse(result: String) extends AddressResponse
+
+  }
+
+  object permissions {
+    sealed trait PermissionResponse
+
+    object Permission extends Enumeration {
+      type Permission = Value
+      val Connect  = Value("connect")
+      val Send     = Value("send")
+      val Receive  = Value("receive")
+      val Issue    = Value("issue")
+      val Mine     = Value("mine")
+      val Activate = Value("activate")
+      val Admin    = Value("admin")
+    }
+
+
+    case class Grant(id: String, method: String, params: Seq[Param])
+    case class PermissionsGranted(address: String) extends PermissionResponse
+    case class PermissionError(result: String, error: MultiChainError, id: Option[String] = None) extends PermissionResponse
+
+    def permissions2String(permissions: Seq[Permission] ): String = {
+      val p = permissions.foldLeft("")((str, item) => str match {
+        case "" => item.toString
+        case _ => str + "," + item
+      })
+      p
+    }
+  }
 
   object streams {
     sealed trait StreamResponse

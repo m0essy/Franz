@@ -2,12 +2,16 @@ package com.snekyx.franz.api
 
 import java.util.UUID
 
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, Uri}
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
 
-trait MultiChainCommands {
+import scala.concurrent.Future
+
+trait CommandParams {
   implicit def string2Param (param: String): Param   = StringParam(param)
   implicit def int2Param (param: Int): Param         = IntParam(param)
   implicit def boolean2Param (param: Boolean): Param = BooleanParam(param)
@@ -21,4 +25,5 @@ trait MultiChainCommands {
     case x: IntParam     => x.asJson
     case x: BooleanParam => x.asJson
   }
+
 }

@@ -7,26 +7,29 @@ It uses akka-http client to provide an asynchronous com.snekyx.franz.api to use 
 At the moment the following Multichain commands are supported:
 
 Addresses:
+- create new address
 
 Permissions:
 
 Streams:
-- listStream
+- listStreams
 - ceateStream
 - createStreamFrom
+- subscribe
 
 Transactions:
 
-more are hopefully avaliable soon
+more are hopefully available soon
 
-###next steps:
+### next steps:
 
-- add tests
+- add proper error handling
 - add missing stream commands (subscribe, publish, etc.)
 - add logging
 - add examples
 - add documentation
 
 also hopefully coming soon...
+Akka stream api for Multichain streams
 
-###examples
+### examples
