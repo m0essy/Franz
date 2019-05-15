@@ -1,12 +1,14 @@
 package com.snekyx.franz.api
 
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.snekyx.franz.api.streams._
 import io.circe.generic.auto._
 import io.circe.syntax._
 
 import scala.concurrent.Future
-
+import com.snekyx.franz.api.HexStringUtil.string2hex
+import com.snekyx.franz.utils.CirceSupport._
 
 trait StreamCommands extends CommandParams with MultiChainConnector {
   val CREATE: String = "create"
@@ -18,6 +20,22 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
   val SUBSCRIBE = "subscribe"
   val UNSUBSCRIBE = "unsubscribe"
 
+  case class Create(id: String, method: String, params: Seq[Param])
+
+  case class CreateFrom(id: String, method: String, params: Seq[Param])
+
+  case class ListStreams(id: String, method: String, params: Seq[Param])
+
+  case class ListStreamsResult(name: String, createtxid: String, streamref: String, open: Boolean, /*details, */ subscribed: Boolean, synchronized: Boolean, items: Int, confirmed: Int, keys: Int, publishers: Int)
+
+  case class Subscribe(id: String, method: String, params: Seq[Param])
+
+  case class Unsubscribe(id: String, method: String, params: Seq[Param])
+
+  case class Publish(id: String, method: String, params: Seq[Param])
+
+  case class PublishFrom(id: String, method: String, params: Seq[Param])
+
   def listStreams(streamName: String, verbose: Boolean, count: Int, start: Int)(implicit credentials: Credentials): Future[HttpResponse] = {
     val x = ListStreams(uuid, LISTSTREAMS, List(streamName, verbose, count, start)).asJson.noSpaces
     println("payload: " + x)
@@ -25,19 +43,19 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
     sendToMultiChain(x)
   }
 
-  def listStreams(streamName: String = "*", verbose: Boolean = false, count: Int = 10)(implicit credentials: Credentials): Future[HttpEntity] = {
+  def listStreams(streamName: String = "*", verbose: Boolean = false, count: Int = 10): Future[Seq[StreamResponse]] = {
     val x = ListStreams(uuid, LISTSTREAMS, List(streamName, verbose, count)).asJson.noSpaces
-    println("payload: " + x)
+    case class Wrapper(result: List[StreamDetails])
 
-    sendToMultiChain(x) map { item =>
-      item.entity
+    sendToMultiChain(x) flatMap { item =>
+      Unmarshal(item).to[Wrapper] map (_.result) recover {
+        case err => Seq(StreamError(0, s"$err"))
+      }
     }
   }
 
   def create(streamName: String, open: Boolean = false): Future[StreamResponse] = {
     val x = Create(uuid, CREATE, List("stream", streamName, open)).asJson.noSpaces
-    println("payload: " + x)
-
     sendToMultiChain(x) map {
       case HttpResponse(statusCode, headers, entity, _) if statusCode == StatusCodes.OK => CreationResponse()
       case HttpResponse(statusCode, headers, entity, _) => CreationError(statusCode.intValue(), 0, "Error")
@@ -50,17 +68,38 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
     sendToMultiChain(x)
   }
 
-  def subscribe(streamName: String) = {
+  def subscribe(streamName: String): Future[StreamResponse] = {
     val x = Subscribe(uuid, SUBSCRIBE, List(streamName)).asJson.noSpaces
-    println("payload: " + x)
-
-    sendToMultiChain(x)
+    sendToMultiChain(x) map {
+      case resp: HttpResponse if resp.status == StatusCodes.OK => Subscribed(streamName)
+      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+    }
   }
 
-  def unsubscribe() = {}
+  def unsubscribe(streamName: String): Future[StreamResponse] = {
+    val x = Unsubscribe(uuid, UNSUBSCRIBE, List(streamName)).asJson.noSpaces
+    sendToMultiChain(x) map {
+      case resp: HttpResponse if resp.status == StatusCodes.OK => Subscribed(streamName)
+      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+    }
+  }
 
-  def publish() = {}
+  // todo implement offChain
+  def publish(streamName: String, key: String, data: String, offChain: Boolean = false): Future[StreamResponse] = {
+    val x = Publish(uuid, PUBLISH, List(streamName, key, string2hex(data))).asJson.noSpaces
+    sendToMultiChain(x) map {
+      case resp: HttpResponse if resp.status == StatusCodes.OK => Published(streamName)
+      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+    }
+  }
 
-  def publishFrom() = {}
+  // todo add confirmed Optional boolean field
+  def publishFrom(streamName: String, fromAddress: String): Future[StreamResponse] = {
+    val x = PublishFrom(uuid, PUBLISHFROM, List(streamName)).asJson.noSpaces
+    sendToMultiChain(x) map {
+      case resp: HttpResponse if resp.status == StatusCodes.OK => Subscribed(streamName)
+      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+    }
+  }
 }
 

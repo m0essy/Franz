@@ -1,10 +1,13 @@
 package com.snekyx.franz.api.util
 
+import java.io.File
+
 import com.snekyx.franz.api.Credentials
 
 import scala.io.Source
 import scala.sys.process._
 import scala.util.{Failure, Success, Try}
+import scala.reflect.io.Directory
 
 //noinspection SpellCheckingInspection
 trait MultiChainSetup {
@@ -56,9 +59,12 @@ trait MultiChainSetup {
   protected def deleteBlockChain(): Unit = {
     val homeDirectory = System.getProperty("user.home")
     Try {
-      val deleteResult = s"rm -r $homeDirectory\\AppData\\Roaming\\MultiChain\\$multiChainName" !!
+      //val deleteResult = s"rm -r $homeDirectory\\AppData\\Roaming\\MultiChain\\$multiChainName" !!
 
-      println("multichain was deleted." + deleteResult)
+      val directory = new Directory(new File(s"$homeDirectory\\AppData\\Roaming\\MultiChain\\$multiChainName"))
+      directory.deleteRecursively()
+
+      println("multichain was deleted.")
     } match {
       case Success(v) =>
       case Failure(err) => println("Delete failed. " + err)
