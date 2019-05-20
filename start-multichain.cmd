@@ -1,0 +1,1 @@
+multichaind scalaChain -daemon

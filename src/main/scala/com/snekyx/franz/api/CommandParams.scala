@@ -15,6 +15,7 @@ trait CommandParams {
   implicit def string2Param (param: String): Param   = StringParam(param)
   implicit def int2Param (param: Int): Param         = IntParam(param)
   implicit def boolean2Param (param: Boolean): Param = BooleanParam(param)
+  implicit def double2Param (param: Double): Param   = DoubleParam(param)
 
   implicit object RolesSeqEncoder extends Encoder[Seq[Param]] {
     override def apply(rs: Seq[Param]): Json = rs.flatMap(_.asJson.findAllByKey("value")).asJson
@@ -24,6 +25,7 @@ trait CommandParams {
     case x: StringParam  => x.asJson
     case x: IntParam     => x.asJson
     case x: BooleanParam => x.asJson
+    case x: DoubleParam  => x.asJson
   }
 
 }

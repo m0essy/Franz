@@ -1,4 +1,4 @@
-package com.snekyx.franz.api
+package com.snekyx.franz.utils
 
 object HexStringUtil {
   // convert normal string to hex bytes string

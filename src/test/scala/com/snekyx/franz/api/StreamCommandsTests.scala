@@ -2,7 +2,6 @@ package com.snekyx.franz.api
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.snekyx.franz.api.streams.{CreationResponse, Published, StreamDetails, Subscribed}
 import com.snekyx.franz.api.util.MultiChainSetup
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification

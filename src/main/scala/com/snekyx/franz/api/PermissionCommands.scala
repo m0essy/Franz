@@ -9,18 +9,23 @@ import io.circe.syntax._
 import com.snekyx.franz.utils.CirceSupport._
 
 import scala.concurrent.Future
-
+// todo: implement entity.issue and entity.write permission
 trait PermissionCommands extends CommandParams with MultiChainConnector {
   val GRANT = "grant"
   // {"method":"grant","params":["1KRNNkZM6VPLWq6CL6QX8TX1fEk1qtDtQqXn2r","connect,send,receive,issue"],"id":1,"chain_name":"droneChain"}
   def grant(address: String, permissions: Seq[Permission]): Future[PermissionResponse] = {
-//    val json = Grant(uuid, GRANT, List(address, permissions2String(permissions))).asJson.noSpaces
-    val json = Grant(uuid, GRANT, List(address, "asdfasdfasdfasdfasd")).asJson.noSpaces
+    val json = Grant(uuid, GRANT, List(address, permissions2String(permissions))).asJson.noSpaces
+//    val json = Grant(uuid, GRANT, List(address, "asdfasdfasdfasdfasd")).asJson.noSpaces
+
+    println("XXXXXXXXX")
+    println(json)
 
     sendToMultiChain(json) flatMap {
       case response: HttpResponse if response.status == StatusCodes.OK =>
         Future.successful(PermissionsGranted(address))
       case response: HttpResponse =>
+        println("XXXXXXXXXXXXXXX")
+        println(response)
         Unmarshal(response).to[PermissionError].map({
           case result: PermissionError =>
             result

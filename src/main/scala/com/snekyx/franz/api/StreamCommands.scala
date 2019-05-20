@@ -7,14 +7,14 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 
 import scala.concurrent.Future
-import com.snekyx.franz.api.HexStringUtil.string2hex
+import com.snekyx.franz.utils.HexStringUtil.string2hex
 import com.snekyx.franz.utils.CirceSupport._
 
 trait StreamCommands extends CommandParams with MultiChainConnector {
   val CREATE: String = "create"
   val CREATEFROM: String = "createfrom"
   val LISTSTREAMS: String = "liststreams"
-  val LISTSTREAMITEMS: String = "LISTSTREAMITEMS".toLowerCase
+  val LISTSTREAMITEMS: String = "liststreamitems"
   val PUBLISH: String = "publish"
   val PUBLISHFROM = "publishfrom"
   val SUBSCRIBE = "subscribe"
@@ -35,6 +35,8 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
   case class Publish(id: String, method: String, params: Seq[Param])
 
   case class PublishFrom(id: String, method: String, params: Seq[Param])
+
+  case class ListStreamItems(id: String, method: String, params: Seq[Param])
 
   def listStreams(streamName: String, verbose: Boolean, count: Int, start: Int)(implicit credentials: Credentials): Future[HttpResponse] = {
     val x = ListStreams(uuid, LISTSTREAMS, List(streamName, verbose, count, start)).asJson.noSpaces
@@ -72,7 +74,7 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
     val x = Subscribe(uuid, SUBSCRIBE, List(streamName)).asJson.noSpaces
     sendToMultiChain(x) map {
       case resp: HttpResponse if resp.status == StatusCodes.OK => Subscribed(streamName)
-      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+      case HttpResponse(statusCode, _, entity, _) => StreamError(statusCode.intValue(), entity.toString)
     }
   }
 
@@ -80,7 +82,7 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
     val x = Unsubscribe(uuid, UNSUBSCRIBE, List(streamName)).asJson.noSpaces
     sendToMultiChain(x) map {
       case resp: HttpResponse if resp.status == StatusCodes.OK => Subscribed(streamName)
-      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+      case HttpResponse(statusCode, _, entity, _) => StreamError(statusCode.intValue(), entity.toString)
     }
   }
 
@@ -89,7 +91,7 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
     val x = Publish(uuid, PUBLISH, List(streamName, key, string2hex(data))).asJson.noSpaces
     sendToMultiChain(x) map {
       case resp: HttpResponse if resp.status == StatusCodes.OK => Published(streamName)
-      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+      case HttpResponse(statusCode, _, entity, _) => StreamError(statusCode.intValue(), entity.toString)
     }
   }
 
@@ -97,8 +99,17 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
   def publishFrom(streamName: String, fromAddress: String): Future[StreamResponse] = {
     val x = PublishFrom(uuid, PUBLISHFROM, List(streamName)).asJson.noSpaces
     sendToMultiChain(x) map {
-      case resp: HttpResponse if resp.status == StatusCodes.OK => Subscribed(streamName)
-      case HttpResponse(statusCode, _, entity, _)              => StreamError(statusCode.intValue(), entity.toString)
+      case resp: HttpResponse if resp.status == StatusCodes.OK => Published(streamName)
+      case HttpResponse(statusCode, _, entity, _) => StreamError(statusCode.intValue(), entity.toString)
+    }
+  }
+
+  def listStreamItems(streamName: String, count: Int = 10, start: Int = -1) = {
+    val verbose = false
+    val localOrdering = false
+    val cmd = ListStreamItems(uuid, LISTSTREAMITEMS, List(streamName, verbose, count, start, localOrdering)).asJson.noSpaces
+    sendToMultiChain(cmd) map {
+      case resp: HttpResponse if resp.status == StatusCodes.OK => streamName
     }
   }
 }

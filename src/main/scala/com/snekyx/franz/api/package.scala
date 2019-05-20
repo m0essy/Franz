@@ -16,6 +16,8 @@ package object api {
 
   case class BooleanParam(value: Boolean) extends Param
 
+  case class DoubleParam(value: Double) extends Param
+
   case class MultiChainError(code: Int, message: String)
 
   object addresses {
@@ -101,6 +103,15 @@ package object api {
 
   }
 
+  object assets {
+    sealed trait AssetResponse
+
+    case class AssetError(statusCode: Int, message: String) extends AssetResponse
+
+    case class Issued(assetName: String) extends AssetResponse
+
+    case class AssetInfo(info: String) extends AssetResponse
+  }
 }
 
 
