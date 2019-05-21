@@ -53,5 +53,25 @@ class TransactionCommandsTests extends Specification with MultiChainSetup with B
 
       balances mustEqual List(AddressBalance("SteelUnit",0.1,None))
     }
+
+    "send asset from address to address" in {
+      val asset = "SteelUnit123"
+
+      val fromAddress = Await.result(multiChainCommands.getAddressList(), 2 seconds).head
+
+      Await.result(multiChainCommands.issue(fromAddress, asset, 100, 0.1), 2 seconds)
+
+      val toAddress = Await.result(multiChainCommands.getNewAddress(), 2 seconds) match {
+        case a: NewAddressResponse => a
+      }
+
+      Await.result(multiChainCommands.grant(toAddress.result, Seq(Permission.Receive)), 2 seconds)
+
+      Await.result(multiChainCommands.sendAssetFrom(fromAddress, toAddress.result , asset, 0.1), 2 seconds)
+
+      val balances = Await.result(multiChainCommands.getAddressBalances(toAddress.result), 2 seconds)
+
+      balances mustEqual List(AddressBalance("SteelUnit123",0.1,None))
+    }
   }
 }

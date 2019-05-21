@@ -2,7 +2,6 @@ package com.snekyx.franz.api
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import com.snekyx.franz.api.transaction.SuccessResponse
 import com.snekyx.franz.api.wallet._
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -38,18 +37,31 @@ trait WalletCommands extends CommandParams with MultiChainConnector {
   }
 
   def getTotalBalances() = {
-
+    // todo implement
   }
 
   def getMultiBalances() = {
-
+    // todo implement
   }
 
-  def listAddressTransactions() = {
+  def listAddressTransactions(address: String, count: Int = 10, skip: Int = 0): Future[Seq[WalletResponse]] = {
+    val cmd = WalletCommand(uuid, LIST_ADDRESS_TRANSACTIONS, List(address, count, skip)).asJson.noSpaces
 
+    case class Wrapper(result: Seq[AddressTransaction])
+
+    sendToMultiChain(cmd) flatMap {
+      case resp: HttpResponse if resp.status == StatusCodes.OK =>
+        Unmarshal(resp).to[Wrapper].map({
+          case a: Wrapper => a.result
+          case err => Seq(WalletError(0, s"getaddresses returnd an unknown error $err"))
+        }) recover {
+          case err => Seq(WalletError(0, s"$err"))
+        }
+      case err => Future.successful(Seq(WalletError(0, s"$err")))
+    }
   }
 
   def listWalletTransactions() = {
-
+    // todo implement
   }
 }

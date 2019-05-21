@@ -1,15 +1,15 @@
 package com.snekyx.franz.examples
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl._
-import akka.stream._
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.snekyx.franz.api
 import com.snekyx.franz.api.{Credentials, MultiChainCommands}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
-object BasicStreamExample extends MultiChainCommands {
+object StreamConfidentialityExample extends MultiChainCommands {
+  val timeout = 1 minutes
 
   private val host = "localhost"
   private val rpcPort = 6834
@@ -21,19 +21,17 @@ object BasicStreamExample extends MultiChainCommands {
   override implicit val credentials: api.Credentials = Credentials(host, rpcPort, rpcUser, rpcPassword)
   override implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val timeout = 1 minutes
-
   def main(args: Array[String]): Unit = {
 
-//    val result = Await.result(create("stream21", true), 2 seconds)
+    create("pubkeys", true)
+    create("items", true)
+    create("access", true)
 
-//    Await.result(subscribe("stream21"), 2 seconds)
+    val address = getNewAddress()
 
-//    Await.result(publish("stream21", "Key1", "This is my stream data"), 2 seconds)
-    val items = Await.result(listStreamItems("stream21"), 2 seconds)
+    val streams = Await.result(listStreams(), 2 seconds)
+    println(streams)
 
-    println(items)
-
-    //Await.result(system.whenTerminated, timeout)
+    Await.result(system.whenTerminated, timeout)
   }
 }

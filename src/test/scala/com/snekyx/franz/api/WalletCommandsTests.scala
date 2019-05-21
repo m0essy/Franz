@@ -3,7 +3,7 @@ package com.snekyx.franz.api
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.snekyx.franz.api.util.MultiChainSetup
-import com.snekyx.franz.api.wallet.AddressBalance
+import com.snekyx.franz.api.wallet.{AddressBalance, AddressTransaction}
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
 
@@ -41,6 +41,15 @@ class WalletCommandsTests extends Specification with MultiChainSetup with Before
       balances must have size 1
       balances.head.name mustEqual "MyCoin"
       balances.head.qty mustEqual 100
+    }
+
+    "list all transactions for an address" in {
+      val address = Await.result(multiChainCommands.getAddressList(), 2 seconds).head
+      val transactions = Await.result(multiChainCommands.listAddressTransactions(address), 2 seconds) map {
+        case a: AddressTransaction => a
+      }
+
+      transactions must have size 2
     }
   }
 }

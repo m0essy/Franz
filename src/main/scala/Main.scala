@@ -20,9 +20,9 @@ object Main extends StreamCommands
   with PermissionCommands {
 
   private val host = "localhost"
-  private val rpcPort = 1234
+  private val rpcPort = 6834
   private val rpcUser = "multichainrpc"
-  private val rpcPassword = "XXX"
+  private val rpcPassword = "Ghmt3dmWv6TfFz3vVnDYhnyH2ZpLEdkrsUPJ5xYcHwAK"
 
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()

@@ -97,6 +97,8 @@ package object api {
                              keys: Option[Int] = None,
                              publishers: Option[Int] = None) extends StreamResponse
 
+    case class StreamItem(publishers: Seq[String], keys: Seq[String], offchain: Boolean, data: String, confirmations: Int, txid: String) extends StreamResponse
+
   }
 
   object assets {
@@ -122,8 +124,7 @@ package object api {
 
     case class TransactionError(statusCode: Int, message: String) extends TransactionResponse
 
-    // todo delete
-    case class SuccessResponse(result: String) extends TransactionResponse
+    case class AssetSent(txid: String) extends TransactionResponse
   }
 
   object wallet {
@@ -132,6 +133,11 @@ package object api {
     case class WalletError(statusCode: Int, message: String) extends WalletResponse
 
     case class AddressBalance(name: String, qty: Double, assetref: Option[String]) extends WalletResponse
+
+    case class Asset(name: String, assetRef: Option[String] = None, qty: Double = 100)
+    case class Balance(amount: Int, assets: Seq[Asset])
+
+    case class AddressTransaction(balance: Balance, myaddresses: Seq[String], txid: String) extends WalletResponse
   }
 }
 

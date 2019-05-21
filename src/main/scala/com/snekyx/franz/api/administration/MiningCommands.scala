@@ -6,6 +6,8 @@ import com.snekyx.franz.api.{CommandParams, MultiChainConnector, Param}
 import io.circe.generic.auto._
 import io.circe.syntax._
 
+import scala.concurrent.Future
+
 trait MiningCommands extends CommandParams with MultiChainConnector  {
 
   val PAUSE = "pause"
@@ -13,22 +15,18 @@ trait MiningCommands extends CommandParams with MultiChainConnector  {
 
   case class Cmd(id: String, method: String, params: Seq[Param])
 
-  def pauseMining() = {
+  def pauseMining(): Future[Paused] = {
     val cmd = Cmd(uuid, PAUSE, Seq("mining")).asJson.noSpaces
     sendToMultiChain(cmd) map {
       case resp: HttpResponse if resp.status == StatusCodes.OK =>
-        println("XXXXXXXXXX")
-        println(resp)
         Paused()
     }
   }
 
-  def resumeMining() = {
+  def resumeMining(): Future[Resumed] = {
     val cmd = Cmd(uuid, RESUME, Seq("mining")).asJson.noSpaces
     sendToMultiChain(cmd) map {
       case resp: HttpResponse if resp.status == StatusCodes.OK =>
-        println("XXXXXXXXXX")
-        println(resp)
         Resumed()
     }
   }

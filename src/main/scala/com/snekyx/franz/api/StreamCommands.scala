@@ -9,6 +9,7 @@ import io.circe.syntax._
 import scala.concurrent.Future
 import com.snekyx.franz.utils.HexStringUtil.string2hex
 import com.snekyx.franz.utils.CirceSupport._
+import com.snekyx.franz.utils.HexStringUtil
 
 trait StreamCommands extends CommandParams with MultiChainConnector {
   val CREATE: String = "create"
@@ -59,8 +60,8 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
   def create(streamName: String, open: Boolean = false): Future[StreamResponse] = {
     val x = Create(uuid, CREATE, List("stream", streamName, open)).asJson.noSpaces
     sendToMultiChain(x) map {
-      case HttpResponse(statusCode, headers, entity, _) if statusCode == StatusCodes.OK => CreationResponse()
-      case HttpResponse(statusCode, headers, entity, _) => CreationError(statusCode.intValue(), 0, "Error")
+      case HttpResponse(statusCode, _, entity, _) if statusCode == StatusCodes.OK => CreationResponse()
+      case HttpResponse(statusCode, _, entity, _) => CreationError(statusCode.intValue(), 0, "Error" + entity)
     }
   }
 
@@ -104,12 +105,29 @@ trait StreamCommands extends CommandParams with MultiChainConnector {
     }
   }
 
-  def listStreamItems(streamName: String, count: Int = 10, start: Int = -1) = {
+  def listStreamItems(streamName: String, count: Int = 10, start: Int = -1): Future[Seq[StreamResponse]] = {
     val verbose = false
     val localOrdering = false
     val cmd = ListStreamItems(uuid, LISTSTREAMITEMS, List(streamName, verbose, count, start, localOrdering)).asJson.noSpaces
-    sendToMultiChain(cmd) map {
-      case resp: HttpResponse if resp.status == StatusCodes.OK => streamName
+
+    case class Wrapper(result: Seq[StreamItem])
+
+    sendToMultiChain(cmd) flatMap {
+      case resp: HttpResponse if resp.status == StatusCodes.OK =>
+        Unmarshal(resp).to[Wrapper].map(w => {
+          w.result map { item =>
+            StreamItem(item.publishers,
+              item.keys,
+              item.offchain,
+              HexStringUtil.hex2string(item.data),
+              item.confirmations,
+              item.txid)
+          }
+        }) recover {
+          case err => Seq(StreamError(0, s"$err"))
+        }
+      case resp =>
+        Future.successful(Seq(StreamError(0, s"$resp")))
     }
   }
 }
