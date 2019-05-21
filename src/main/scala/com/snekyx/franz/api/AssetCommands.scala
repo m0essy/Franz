@@ -1,6 +1,7 @@
 package com.snekyx.franz.api
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.snekyx.franz.api.assets.{AssetError, AssetInfo, AssetResponse, Issued}
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -16,7 +17,7 @@ trait AssetCommands extends CommandParams with MultiChainConnector {
   val ISSUEMOREFROM = "issuemorefrom"
   val LISTASSETS = "listassets"
 
-  case class Issue(id: String, method: String, params: Seq[Param])
+  case class IssueAsset(id: String, method: String, params: Seq[Param])
 
   case class AssetParams(name: String, open: Boolean)
 
@@ -26,7 +27,7 @@ trait AssetCommands extends CommandParams with MultiChainConnector {
 
     val params = AssetParams(assetName, open).asJson.noSpaces
 
-    val cmd = Issue(uuid, ISSUE, List(address, params, quantity, smallestUnit)).asJson.noSpaces
+    val cmd = IssueAsset(uuid, ISSUE, List(address, params, quantity, smallestUnit)).asJson.noSpaces
       .replace("\\\"", "\"")
       .replace("\"{\"name", "{\"name")
       .replace(""+open+"}\"", "" + open + "}")
@@ -41,16 +42,20 @@ trait AssetCommands extends CommandParams with MultiChainConnector {
     }
   }
 
-  def getAssetInfo(assetName: String) = {
+  def getAssetInfo(assetName: String): Future[AssetResponse] = {
     val cmd = GetAssetInfo(uuid, GETASSETINFO, List(assetName)).asJson.noSpaces
 
-    sendToMultiChain(cmd) map {
+    case class Wrapper(result: AssetInfo)
+
+    sendToMultiChain(cmd) flatMap {
       case resp: HttpResponse if resp.status == StatusCodes.OK =>
-        println(resp.entity)
-        AssetInfo(resp.entity.toString)
+        println(resp)
+        Unmarshal(resp).to[Wrapper].map(_.result) recover {
+            case err => AssetError(0, s"$err")
+          }
       case resp: HttpResponse                                  =>
         println("Error")
-        AssetError(0, resp.entity.toString)
+        Future.successful(AssetError(0, resp.entity.toString))
     }
   }
 }

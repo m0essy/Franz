@@ -30,13 +30,15 @@ object Main extends StreamCommands
   implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
 
   def main(args: Array[String]): Unit = {
-    val address: Address = Await.result(getAddresses(), 2 seconds) map {
+    val responses = Await.result(getAddresses(), 2 seconds)
+    val address: Address = responses map {
       case a: Address => a
     } head
 
+    println("getAllAddresses")
     println(address)
 
-    val issued = Await.result(issue(address.address, "MyCoin5", 10), 2 seconds)
+    //val issued = Await.result(issue(address.address, "MyCoin5", 10), 2 seconds)
 
     val newAddress = Await.result(getNewAddress() map {
       case a: NewAddressResponse => a
@@ -45,7 +47,6 @@ object Main extends StreamCommands
     println("New Address " + newAddress)
 
     val granted = Await.result(grant(newAddress.result, Seq(Permission.Connect, Permission.Receive)), 2 seconds)
-
     println(granted)
 
 

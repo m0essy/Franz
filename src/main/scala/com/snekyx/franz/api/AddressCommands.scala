@@ -2,7 +2,7 @@ package com.snekyx.franz.api
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import com.snekyx.franz.api.addresses.{Address, AddressCommandError, AddressResponse, GetAddresses, GetNewAddress, NewAddressResponse}
+import com.snekyx.franz.api.addresses.{Address, AddressCommandError, AddressResponse, NewAddressResponse}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import com.snekyx.franz.utils.CirceSupport._
@@ -12,6 +12,10 @@ import scala.concurrent.Future
 trait AddressCommands extends CommandParams with MultiChainConnector {
   val GETNEWADDRESS = "getnewaddress"
   val GETADDRESSES = "getaddresses"
+
+  case class GetNewAddress(id: String, method: String)
+
+  case class GetAddresses(id: String, method: String, params: Seq[Param])
 
   /**
     * Returns a new address whose private key is added to the wallet.
@@ -45,7 +49,7 @@ trait AddressCommands extends CommandParams with MultiChainConnector {
     val verbose = true
     val json = GetAddresses(uuid, GETADDRESSES, Seq(verbose)).asJson.noSpaces
 
-    case class Wrapper(result: List[Address])
+    case class Wrapper(result: Seq[Address])
 
     sendToMultiChain(json) flatMap {
       case resp: HttpResponse if resp.status == StatusCodes.OK =>

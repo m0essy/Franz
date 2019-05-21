@@ -2,8 +2,11 @@ package com.snekyx.franz.api.util
 
 import java.io.File
 
-import com.snekyx.franz.api.Credentials
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import com.snekyx.franz.api.{Credentials, MultiChainCommands, StreamCommands}
 
+import scala.concurrent.ExecutionContext
 import scala.io.Source
 import scala.sys.process._
 import scala.util.{Failure, Success, Try}
@@ -75,5 +78,14 @@ trait MultiChainSetup {
     val stopResult = s"multichain-cli $multiChainName stop" !!
 
     println("multichain was stopped: " + stopResult)
+  }
+
+  protected def multiChainCommands = {
+    new MultiChainCommands {
+      override implicit val system: ActorSystem = ActorSystem()
+      override implicit val materializer: ActorMaterializer = ActorMaterializer()
+      override implicit val credentials: Credentials = Credentials("localhost", multiChainPort, multiChainUser, multiChainPassword)
+      override implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    }
   }
 }

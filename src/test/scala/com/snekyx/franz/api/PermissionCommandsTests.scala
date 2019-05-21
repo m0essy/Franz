@@ -34,23 +34,14 @@ class PermissionCommandsTests extends Specification with MultiChainSetup with Be
 
   "Multichain" should {
     "grant permissions to address" in {
-      Await.result(multiChainCmds.getNewAddress(), 2 seconds) match {
+      Await.result(multiChainCommands.getNewAddress(), 2 seconds) match {
         case NewAddressResponse(address) =>
-          Await.result(multiChainCmds.grant(address, Seq(Connect, Receive, Send, Issue, Mine, Activate, Admin)), 2 seconds) match {
+          Await.result(multiChainCommands.grant(address, Seq(Connect, Receive, Send, Issue, Mine, Activate, Admin)), 2 seconds) match {
             case granted: PermissionsGranted => success
             case other => failure(s"unexpected result. expected PermissionGranted. $other")
           }
         case err                         => failure(s"expected new address. Instead got: $err")
       }
-    }
-  }
-
-  private def multiChainCmds = {
-    new PermissionCommands with AddressCommands {
-      override implicit val system: ActorSystem = ActorSystem()
-      override implicit val materializer: ActorMaterializer = ActorMaterializer()
-      override implicit val credentials: Credentials = Credentials("localhost", multiChainPort, multiChainUser, multiChainPassword)
-      override implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
     }
   }
 }

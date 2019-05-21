@@ -1,6 +1,7 @@
 package com.snekyx.franz
 
 import com.snekyx.franz.api.permissions.Permission.Permission
+import com.snekyx.franz.api.transaction.TransactionResponse
 
 package object api {
 
@@ -21,11 +22,6 @@ package object api {
   case class MultiChainError(code: Int, message: String)
 
   object addresses {
-
-    // commands
-    case class GetNewAddress(id: String, method: String)
-
-    case class GetAddresses(id: String, method: String, params: Seq[Param])
 
     // responses
     sealed trait AddressResponse
@@ -110,7 +106,32 @@ package object api {
 
     case class Issued(assetName: String) extends AssetResponse
 
-    case class AssetInfo(info: String) extends AssetResponse
+    case class Restrictions(send: Boolean, receive: Boolean)
+
+    case class AssetInfo(name: String, issuetxid: String, multiple: Int, units: Int, open: Boolean, restrict: Restrictions, issueqty: Double, issueraw: Double, assetref: Option[String] = None) extends AssetResponse
+  }
+
+  object mining {
+    case class Paused()
+
+    case class Resumed()
+  }
+
+  object transaction {
+    sealed trait TransactionResponse
+
+    case class TransactionError(statusCode: Int, message: String) extends TransactionResponse
+
+    // todo delete
+    case class SuccessResponse(result: String) extends TransactionResponse
+  }
+
+  object wallet {
+    sealed trait WalletResponse
+
+    case class WalletError(statusCode: Int, message: String) extends WalletResponse
+
+    case class AddressBalance(name: String, qty: Double, assetref: Option[String]) extends WalletResponse
   }
 }
 

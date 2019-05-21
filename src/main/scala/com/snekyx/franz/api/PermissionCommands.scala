@@ -17,15 +17,10 @@ trait PermissionCommands extends CommandParams with MultiChainConnector {
     val json = Grant(uuid, GRANT, List(address, permissions2String(permissions))).asJson.noSpaces
 //    val json = Grant(uuid, GRANT, List(address, "asdfasdfasdfasdfasd")).asJson.noSpaces
 
-    println("XXXXXXXXX")
-    println(json)
-
     sendToMultiChain(json) flatMap {
       case response: HttpResponse if response.status == StatusCodes.OK =>
         Future.successful(PermissionsGranted(address))
       case response: HttpResponse =>
-        println("XXXXXXXXXXXXXXX")
-        println(response)
         Unmarshal(response).to[PermissionError].map({
           case result: PermissionError =>
             result
