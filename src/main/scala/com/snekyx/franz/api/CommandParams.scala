@@ -28,4 +28,13 @@ trait CommandParams {
     case x: DoubleParam  => x.asJson
   }
 
+  /**
+    * case class to serialize the command to multichain
+    * @param id identifier for the command. This id is also sent in the response
+    * @param method command
+    * @param params command parameters. String, Int, Boolean and Double are supported at the moment
+    */
+  case class MultichainCommand(id: String, method: String, params: Seq[Param])
+
+  case class ErrorWrapper(error: MultiChainException) extends Exception
 }

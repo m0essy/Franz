@@ -6,3 +6,5 @@ trait MultiChainCommands extends AddressCommands
   with StreamCommands
   with TransactionCommands
   with WalletCommands
+  with MessagingCommands
+  with MultisignatureCommands

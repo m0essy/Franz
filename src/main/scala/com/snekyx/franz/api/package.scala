@@ -1,9 +1,11 @@
 package com.snekyx.franz
 
-import com.snekyx.franz.api.permissions.Permission.Permission
-import com.snekyx.franz.api.transaction.TransactionResponse
+import com.snekyx.franz.api.peer2peer.NodeCommand.NodeCommand
+import com.snekyx.franz.api.permissions.Permission.{Permission, Value}
 
 package object api {
+
+  case class MultiChainException(code: Int, message: String) extends Throwable
 
   case class Credentials(ip: String, port: Int, login: String, password: String)
 
@@ -35,6 +37,20 @@ package object api {
 
   }
 
+  object peer2peer {
+
+    object NodeCommand extends Enumeration {
+      type NodeCommand = Value
+      val Add = Value("add")
+      val Remove = Value("remove")
+      val OneTry = Value("onetry")
+    }
+
+    def nodeCommand2String(command: NodeCommand): String = {
+      command.toString
+    }
+  }
+
   object permissions {
 
     sealed trait PermissionResponse
@@ -49,9 +65,6 @@ package object api {
       val Activate = Value("activate")
       val Admin = Value("admin")
     }
-
-
-    case class Grant(id: String, method: String, params: Seq[Param])
 
     case class PermissionsGranted(address: String) extends PermissionResponse
 
@@ -102,6 +115,7 @@ package object api {
   }
 
   object assets {
+
     sealed trait AssetResponse
 
     case class AssetError(statusCode: Int, message: String) extends AssetResponse
@@ -111,23 +125,29 @@ package object api {
     case class Restrictions(send: Boolean, receive: Boolean)
 
     case class AssetInfo(name: String, issuetxid: String, multiple: Int, units: Int, open: Boolean, restrict: Restrictions, issueqty: Double, issueraw: Double, assetref: Option[String] = None) extends AssetResponse
+
   }
 
   object mining {
+
     case class Paused()
 
     case class Resumed()
+
   }
 
   object transaction {
+
     sealed trait TransactionResponse
 
     case class TransactionError(statusCode: Int, message: String) extends TransactionResponse
 
     case class AssetSent(txid: String) extends TransactionResponse
+
   }
 
   object wallet {
+
     sealed trait WalletResponse
 
     case class WalletError(statusCode: Int, message: String) extends WalletResponse
@@ -135,10 +155,39 @@ package object api {
     case class AddressBalance(name: String, qty: Double, assetref: Option[String]) extends WalletResponse
 
     case class Asset(name: String, assetRef: Option[String] = None, qty: Double = 100)
+
     case class Balance(amount: Int, assets: Seq[Asset])
 
     case class AddressTransaction(balance: Balance, myaddresses: Seq[String], txid: String) extends WalletResponse
+
   }
+
+  object runtime {
+
+    sealed trait RuntimeResponse
+
+    case class NodeInfo(version: String,
+                        nodeversion: Int,
+                        protocolversion: Int,
+                        chainname: String,
+                        description: String,
+                        protocol: String,
+                        port: Int,
+                        setupblocks: Int,
+                        nodeaddress: String,
+                        burnaddress: String,
+                        incomingpaused: Boolean,
+                        miningpaused: Boolean,
+                        offchainpaused: Boolean,
+                        walletversion: Int,
+                        balance: Double,
+                        walletdbversion: Int,
+                        reindex: Boolean,
+                        blocks: Int,
+                        paytxfee: Double) extends RuntimeResponse
+
+  }
+
 }
 
 

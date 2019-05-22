@@ -4,6 +4,7 @@ import java.io.File
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import com.snekyx.franz.api.administration.RuntimeParamCommands
 import com.snekyx.franz.api.{Credentials, MultiChainCommands, StreamCommands}
 
 import scala.concurrent.ExecutionContext
@@ -82,6 +83,15 @@ trait MultiChainSetup {
 
   protected def multiChainCommands = {
     new MultiChainCommands {
+      override implicit val system: ActorSystem = ActorSystem()
+      override implicit val materializer: ActorMaterializer = ActorMaterializer()
+      override implicit val credentials: Credentials = Credentials("localhost", multiChainPort, multiChainUser, multiChainPassword)
+      override implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    }
+  }
+
+  protected def runtimeParamCommands = {
+    new RuntimeParamCommands {
       override implicit val system: ActorSystem = ActorSystem()
       override implicit val materializer: ActorMaterializer = ActorMaterializer()
       override implicit val credentials: Credentials = Credentials("localhost", multiChainPort, multiChainUser, multiChainPassword)
